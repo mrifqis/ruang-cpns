@@ -24,6 +24,8 @@ const error = ref('')
 const target = ref(null)
 const blank = () => ({ title: '', stage: '', body: '', selection_year: '', source_url: '', status: 'pending', note: '' })
 const form = reactive(blank())
+const titleLength = computed(() => [...form.title.trim()].length)
+const titleLengthMessage = 'Judul harus 5–120 karakter setelah spasi di awal dan akhir diabaikan.'
 const bodyLength = computed(() => [...form.body.trim()].length)
 const bodyLengthMessage = 'Isi tips harus 20–5.000 karakter setelah spasi dan baris kosong di awal dan akhir diabaikan.'
 let revision = 0
@@ -41,6 +43,7 @@ function data(result) {
 }
 
 function message(problem) {
+  if (problem.code === '23514' && problem.message?.includes('tips_title_check')) return titleLengthMessage
   if (problem.code === '23514' && problem.message?.includes('tips_body_check')) return bodyLengthMessage
   if (['PGRST202','PGRST205','42P01','42883'].includes(problem.code)) return 'Fitur tips belum tersedia. Hubungi pengelola portal.'
   if (problem.code === '23505') return 'Tanggapan Anda untuk tips ini sudah tercatat.'
@@ -132,6 +135,7 @@ function safeUrl(value) {
 }
 
 function values() {
+  if (titleLength.value < 5 || titleLength.value > 120) throw new Error(titleLengthMessage)
   if (bodyLength.value < 20 || bodyLength.value > 5000) throw new Error(bodyLengthMessage)
   return {
     title: form.title.trim(), stage: form.stage, body: form.body.trim(),
@@ -195,7 +199,7 @@ function toggleModeration() {
         <button type="button" class="quiet" :disabled="busy" @click="mode=''; error=''">Batal</button>
       </div>
       <template v-if="mode==='new' || mode==='edit'">
-        <label>Judul<input v-model.trim="form.title" required minlength="5" maxlength="120"></label>
+        <label>Judul<input v-model="form.title" required aria-describedby="tip-title-length"><small id="tip-title-length">{{ titleLength }} karakter · Minimal 5, maksimal 120</small></label>
         <div class="form-grid">
           <label>Tahapan<select v-model="form.stage" required><option value="" disabled>Pilih tahapan</option><option v-for="item in stages" :key="item">{{ item }}</option></select></label>
           <label>Tahun seleksi (opsional)<input v-model.number="form.selection_year" type="number" min="2000" max="2100" step="1"></label>

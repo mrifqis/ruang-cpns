@@ -1,0 +1,19 @@
+{
+  "name": "portal-cpns",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "nuxt dev",
+    "generate": "nuxt generate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.2",
+    "@tailwindcss/vite": "^4.3.5",
+    "nuxt": "^4.7.0",
+    "tailwindcss": "^4.3.5"
+  }
+}

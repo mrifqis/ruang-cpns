@@ -31,7 +31,7 @@ values ('GANTI_DENGAN_UUID_AKUN_ADMIN');
 
 Impor repositori yang berisi folder proyek ini ke Netlify. Jika proyek ada dalam subfolder, atur Base directory ke folder tersebut. `netlify.toml` sudah menentukan perintah build dan direktori publikasi. Tambahkan kedua variabel Supabase ke pengaturan build Netlify, jalankan deploy, lalu daftarkan alamat hasil deploy di pengaturan Supabase. Jangan commit `.env`.
 
-Build lokal bisa diperiksa dengan `npm run generate`. Hasil build berada di `.output/public`.
+Build lokal bisa diperiksa dengan `npm run generate`. Hasil build Netlify berada di `dist`; build lokal standar berada di `.output/public`.
 
 ## Alur moderasi
 
@@ -40,3 +40,10 @@ Build lokal bisa diperiksa dengan `npm run generate`. Hasil build berada di `.ou
 - Pengguna bisa melaporkan tautan, misalnya karena kedaluwarsa, duplikat, isi berubah, atau perlu dihapus. Admin dapat mengedit atau mengarsipkan entri, lalu menutup laporan dengan catatan hasil pemeriksaan.
 - Mengganti URL mengembalikan status ke **Menunggu tinjauan** serta menutup tanggapan yang terkait URL lama. Publikasikan kembali setelah URL baru diperiksa.
 - Basis data membatasi akun biasa agar hanya dapat mengirim usulan dan umpan balik. Perubahan moderasi dilakukan melalui fungsi yang memeriksa peran admin dan mencatat alasannya.
+
+## Aktifkan Tips & Pengalaman
+
+Untuk portal yang sudah terpasang, jalankan hanya `supabase/migrations/20261126_tips.sql` melalui Supabase SQL Editor. Untuk proyek baru, jalankan `supabase/schema.sql` terlebih dahulu, lalu migrasi tips. Gunakan akun admin yang sudah ditetapkan di `public.admins`.
+
+Pengguna masuk untuk mengirim pengalaman, memberi tanda **Membantu**, atau melaporkan tips. Pilihan tahapan mencakup **Lainnya**. Tahun seleksi dan tautan sumber bersifat opsional. Panel **Moderasi tips** berada di menu **Tips & Pengalaman** dan hanya tersedia bagi admin.
+

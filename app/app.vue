@@ -19,6 +19,18 @@ const admin = ref(false)
 const loading = ref(Boolean(db))
 const busy = ref(false)
 const view = ref('catalog')
+const tipId = ref('')
+function syncTipRoute() {
+  const match = location.hash.match(/^#tips(?:\/([a-f0-9-]{36}))?$/i)
+  tipId.value = match?.[1] || ''
+  if (match) view.value = 'tips'
+  else if (view.value === 'tips') view.value = 'catalog'
+}
+function navigate(nextView) {
+  if (nextView === 'tips') location.hash = '#tips'
+  else if (location.hash.startsWith('#tips')) window.history.pushState(null, '', location.pathname + location.search)
+  view.value = nextView
+}
 const query = ref('')
 const category = ref('')
 const price = ref('')
@@ -66,17 +78,22 @@ async function refresh() {
   history.value = requireData(log)
 }
 onMounted(() => {
+  syncTipRoute()
+  window.addEventListener('hashchange', syncTipRoute)
   if (!db) return
   subscription = db.auth.onAuthStateChange((_event, session) => {
     user.value = session?.user ?? null
-    if (!user.value) { admin.value = false; view.value = 'catalog' }
+    if (!user.value) { admin.value = false; if (view.value === 'admin') navigate('catalog') }
     setTimeout(async () => {
       try { await refresh() } catch (error) { show(friendly(error),true) }
       finally { loading.value = false }
     }, 0)
   }).data.subscription
 })
-onBeforeUnmount(() => subscription?.unsubscribe())
+onBeforeUnmount(() => {
+  window.removeEventListener('hashchange', syncTipRoute)
+  subscription?.unsubscribe()
+})
 async function action(operation, message, reload = true, close = true) {
   if (busy.value) return
   busy.value = true
@@ -145,9 +162,10 @@ function sendFeedback(link,kind,reason = null) {
 <template>
   <header class="site-header">
     <div class="wrap nav">
-      <button class="brand" @click="view='catalog'"><span class="brand-mark">R</span> Ruang CPNS</button>
+      <button class="brand" @click="navigate('catalog')"><span class="brand-mark">R</span> Ruang CPNS</button>
       <nav aria-label="Navigasi utama">
-        <button v-if="admin" class="quiet" @click="view=view==='admin'?'catalog':'admin'">{{ view==='admin'?'Katalog':'Moderasi' }}</button>
+        <button class="quiet" :aria-current="view==='tips' ? 'page' : undefined" @click="navigate('tips')">Tips &amp; Pengalaman</button>
+        <button v-if="admin" class="quiet" @click="navigate(view==='admin'?'catalog':'admin')">{{ view==='admin'?'Katalog':'Moderasi' }}</button>
         <button v-if="user" class="quiet" @click="action(async()=>requireData(await db.auth.signOut()),'Anda telah keluar.',false)">Keluar</button>
         <button v-else class="quiet" @click="open('login')">Masuk</button>
         <button class="primary" @click="open('submit')">＋ Usulkan tautan</button>
@@ -197,6 +215,8 @@ function sendFeedback(link,kind,reason = null) {
       </section>
     </section>
   </main>
+
+  <TipsPortal v-else-if="view==='tips'" :db="db" :user="user" :admin="admin" :tip-id="tipId" @login="open('login')" @catalog="category=$event; query=''; price=''; navigate('catalog')" />
 
   <main v-else-if="admin" class="wrap directory">
     <h1 class="admin-title">Moderasi tautan</h1>
